@@ -1,6 +1,6 @@
-node_modules
+/node_modules
 npm-debug.log
-.dockerignore
-.gitignore
-cloudbuild.yaml
-larabase-serice-account.json
+/.dockerignore
+/.gitignore
+/cloudbuild.yaml
+/larabase-service-account.json

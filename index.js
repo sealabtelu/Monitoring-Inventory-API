@@ -5,7 +5,7 @@ const multer = require('multer');
 const { google } = require('googleapis');
 
 // Initialize Firebase Admin SDK
-const serviceAccount = require('./larabase-service-account2.json');
+const serviceAccount = require('./larabase.json');
 
 const port = process.env.PORT || 8080;
 
@@ -24,7 +24,7 @@ const upload = multer();
 // Google Sheets API setup
 const sheets = google.sheets('v4');
 const auth = new google.auth.GoogleAuth({
-  keyFile: "./rfidtelyu-2b6b47df2752.json", // Path to your service account JSON file
+  keyFile: "./rfidtelyu.json", // Path to your service account JSON file
   scopes: ['https://www.googleapis.com/auth/spreadsheets'], // Scopes for Google Sheets
 });
 

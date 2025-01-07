@@ -1,0 +1,7 @@
+steps:
+- name: 'gcr.io/cloud-builders/docker'
+  args: ['build', '-t', 'gcr.io/rfidtelyu/inventory', '.']
+- name: 'gcr.io/cloud-builders/docker'
+  args: ['push', 'gcr.io/rfidtelyu/inventory']
+images:
+- 'gcr.io/rfidtelyu/inventory'

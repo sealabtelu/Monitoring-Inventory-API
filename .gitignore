@@ -1,6 +1,7 @@
-node_modules
-npm-debug.log
-.dockerignore
-.gitignore
-cloudbuild.yaml
-larabase-service-account.json
+./node_modules
+./npm-debug.log
+./dockerignore
+./gitignore
+./cloudbuild.yaml
+./larabase.json
+./rfidtelyu.json

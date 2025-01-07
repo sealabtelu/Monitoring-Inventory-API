@@ -2,9 +2,10 @@ const express = require('express');
 const admin = require('firebase-admin');
 const bodyParser = require('body-parser');
 const multer = require('multer');
+const { google } = require('googleapis');
 
 // Initialize Firebase Admin SDK
-const serviceAccount = require('./larabase-service-account.json');
+const serviceAccount = require('./larabase-service-account2.json');
 
 const port = process.env.PORT || 8080;
 
@@ -20,6 +21,13 @@ app.use(bodyParser.urlencoded({ extended: true })); // For parsing application/x
 // Initialize multer for handling form-data
 const upload = multer();
 
+// Google Sheets API setup
+const sheets = google.sheets('v4');
+const auth = new google.auth.GoogleAuth({
+  keyFile: "./rfidtelyu-2b6b47df2752.json", // Path to your service account JSON file
+  scopes: ['https://www.googleapis.com/auth/spreadsheets'], // Scopes for Google Sheets
+});
+
 // Function to extract jenis from kode_barang
 const extractJenis = (kode_barang) => {
   return kode_barang.substring(39, 41); // Extracts the 27th and 28th characters
@@ -30,7 +38,7 @@ const formatKodeBarang = (kode_barang) => {
   return kode_barang.length > 53 ? kode_barang.substring(0, 53) : kode_barang;
 };
 
-// Function to format date to "YYYY:MM:DD hh:mm:ss"
+// Function to format date to "YYYY-MM-DD HH:mm:ss"
 const formatDate = (date) => {
   const pad = (num) => (num < 10 ? '0' + num : num);
   return `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())} ${pad(date.getHours())}:${pad(date.getMinutes())}:${pad(date.getSeconds())}`;
@@ -73,7 +81,7 @@ app.get('/api/items', async (req, res) => {
 
 // API to post barang_masuk
 app.post('/api/items/masuk', upload.none(), async (req, res) => {
-  let { kode_barang, ruangan } = req.body; // Get kode_barang and ruangan from form-data
+  let { kode_barang, ruangan, total, deteksi, pengiriman } = req.body; // Get kode_barang and ruangan from form-data
 
   // Format kode_barang to ensure it is exactly 53 characters
   kode_barang = formatKodeBarang(kode_barang);
@@ -113,8 +121,10 @@ app.post('/api/items/masuk', upload.none(), async (req, res) => {
         updated_at: formatDate(new Date()), // Format date
       });
     }
+
     // Generate a new random UID for barang_masuk
     const newBarangMasukId = admin.firestore().collection('barang_masuk').doc().id;
+
     // Add to barang_masuk collection
     await db.collection('barang_masuk').doc(newBarangMasukId).set({
       barang_id: barangId, // Use the ID from data_barang
@@ -127,7 +137,27 @@ app.post('/api/items/masuk', upload.none(), async (req, res) => {
       created_at: formatDate(new Date()), // Format date
     });
 
-    res.status(200).send('Barang masuk processed successfully');
+    // Prepare data for Google Sheets
+    const sheetData = [
+      [total, deteksi, pengiriman, formatDate(new Date())] // Data to be pushed to Google Sheets
+    ];
+
+    // Push data to Google Sheets
+    const authClient = await auth.getClient();
+    const spreadsheetId = '1xHz943KfpHVS3U8Wxtz4-kVduAt6JAWMxTWYN_cl8-U'; // Your Google Sheet ID
+    const range = 'Sheet1!A:D'; // Adjust the range as needed
+
+    await sheets.spreadsheets.values.append({
+      auth: authClient,
+      spreadsheetId,
+      range,
+      valueInputOption: 'RAW',
+      resource: {
+        values: sheetData,
+      },
+    });
+
+    res.status(200).send('Barang masuk processed successfully and data pushed to Google Sheets');
   } catch (error) {
     console.error('Error processing barang masuk:', error);
     res.status(500).send('Internal Server Error');
@@ -136,7 +166,7 @@ app.post('/api/items/masuk', upload.none(), async (req, res) => {
 
 // API to post barang_keluar
 app.post('/api/items/keluar', upload.none(), async (req, res) => {
-  let { kode_barang, ruangan } = req.body; // Get kode_barang and ruangan from form-data
+  let { kode_barang, ruangan, total, deteksi, pengiriman } = req.body; // Get kode_barang and ruangan from form-data
 
   // Format kode_barang to ensure it is exactly 53 characters
   kode_barang = formatKodeBarang(kode_barang);
@@ -191,7 +221,27 @@ app.post('/api/items/keluar', upload.none(), async (req, res) => {
       created_at: formatDate(new Date()), // Format date
     });
 
-    res.status(200).send('Barang keluar processed successfully');
+    // Prepare data for Google Sheets
+    const sheetData = [
+      [total, deteksi, pengiriman, formatDate(new Date())] // Data to be pushed to Google Sheets
+    ];
+
+    // Push data to Google Sheets
+    const authClient = await auth.getClient();
+    const spreadsheetId = '1xHz943KfpHVS3U8Wxtz4-kVduAt6JAWMxTWYN_cl8-U'; // Your Google Sheet ID
+    const range = 'Sheet1!A:D'; // Adjust the range as needed
+
+    await sheets.spreadsheets.values.append({
+      auth: authClient,
+      spreadsheetId,
+      range,
+      valueInputOption: 'RAW',
+      resource: {
+        values: sheetData,
+      },
+    });
+
+    res.status(200).send('Barang keluar processed successfully and data pushed to Google Sheets');
   } catch (error) {
     console.error('Error processing barang keluar:', error);
     res.status(500).send('Internal Server Error');

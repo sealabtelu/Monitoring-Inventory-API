@@ -13,8 +13,6 @@ RUN npm install
 # Copy the rest of your application code
 COPY . .
 
-# COPY tensorflow.dll node_modules/\@tensorflow/tfjs-node/lib/napi-v8/
-
 # Expose the port your app runs on
 EXPOSE 8080
 

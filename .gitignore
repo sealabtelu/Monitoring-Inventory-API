@@ -1,7 +1,6 @@
-./node_modules
-./npm-debug.log
-./dockerignore
-./gitignore
-./cloudbuild.yaml
-./larabase.json
-./rfidtelyu.json
+node_modules/
+npm-debug.log
+dockerignore
+cloudbuild.yaml
+larabase-sa.json
+rfidtelyu.json
